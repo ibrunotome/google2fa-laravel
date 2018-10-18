@@ -28,9 +28,6 @@
     "extra": {
         "component": "package",
         "frameworks": ["Laravel"],
-        "branch-alias": {
-          "dev-master": "0.2-dev"
-        },
         "laravel": {
             "providers": [
                 "PragmaRX\\Google2FALaravel\\ServiceProvider"
