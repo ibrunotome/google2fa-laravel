@@ -1,8 +1,8 @@
 {
-    "name": "pragmarx/google2fa-laravel",
-    "description": "A One Time Password Authentication package, compatible with Google Authenticator.",
+    "name": "ibrunotome/google2fa-laravel",
+    "description": "The pragmarx/google2fa with the part that allow usage in stateless APIs",
     "keywords": ["authentication", "two factor authentication", "google2fa", "laravel"],
-    "license": "BSD-3-Clause",
+    "license": "MIT",
     "authors": [
         {
             "name": "Antonio Carlos Ribeiro",
