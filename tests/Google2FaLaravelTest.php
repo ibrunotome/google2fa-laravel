@@ -31,6 +31,11 @@ class Google2FaLaravelTest extends TestCase
         return $this->call('GET', 'home')->getContent();
     }
 
+    protected function homeJson()
+    {
+        return $this->json('GET', 'home');
+    }
+
     private function loginUser()
     {
         $user = new User();
@@ -105,6 +110,14 @@ class Google2FaLaravelTest extends TestCase
         $this->assertContains(
             'google2fa view',
             $this->home()
+        );
+    }
+
+    public function testJsonRedirectToGoogle2FA()
+    {
+        $this->assertEquals(
+            303,
+            $this->homeJson()->getStatusCode()
         );
     }
 

@@ -13,11 +13,11 @@ use PragmaRX\Google2FALaravel\Support\Auth;
 use PragmaRX\Google2FALaravel\Support\Config;
 use PragmaRX\Google2FALaravel\Support\Constants;
 use PragmaRX\Google2FALaravel\Support\Request;
-use PragmaRX\Google2FALaravel\Support\Session;
+use PragmaRX\Google2FALaravel\Support\Store;
 
 class Google2FA extends Google2FAService
 {
-    use Auth, Config, Request, Session;
+    use Auth, Config, Request, Store;
 
     /**
      * Authenticator constructor.
@@ -39,6 +39,7 @@ class Google2FA extends Google2FAService
     public function boot($request)
     {
         $this->setRequest($request);
+        $this->setStore($this->getRequest());
 
         return $this;
     }
@@ -77,7 +78,7 @@ class Google2FA extends Google2FAService
     protected function storeOldTimestamp($key)
     {
         return $this->config('forbid_old_passwords') === true
-            ? $this->sessionPut(Constants::SESSION_OTP_TIMESTAMP, $key)
+            ? $this->store->put(Constants::SESSION_OTP_TIMESTAMP, $key)
             : $key;
     }
 
@@ -89,7 +90,7 @@ class Google2FA extends Google2FAService
     protected function getOldTimestamp()
     {
         return $this->config('forbid_old_passwords') === true
-            ? $this->sessionGet(Constants::SESSION_OTP_TIMESTAMP)
+            ? $this->store->get(Constants::SESSION_OTP_TIMESTAMP)
             : null;
     }
 
@@ -111,7 +112,7 @@ class Google2FA extends Google2FAService
     protected function minutesSinceLastActivity()
     {
         return Carbon::now()->diffInMinutes(
-            $this->sessionGet(Constants::SESSION_AUTH_TIME)
+            $this->store->get(Constants::SESSION_AUTH_TIME)
         );
     }
 
@@ -153,7 +154,7 @@ class Google2FA extends Google2FAService
     protected function twoFactorAuthStillValid()
     {
         return
-            (bool) $this->sessionGet(Constants::SESSION_AUTH_PASSED, false) &&
+            (bool) $this->store->get(Constants::SESSION_AUTH_PASSED, false) &&
             !$this->passwordExpired();
     }
 
@@ -172,7 +173,7 @@ class Google2FA extends Google2FAService
      */
     public function login()
     {
-        $this->sessionPut(Constants::SESSION_AUTH_PASSED, true);
+        $this->store->put(Constants::SESSION_AUTH_PASSED, true);
 
         $this->updateCurrentAuthTime();
     }
@@ -184,7 +185,7 @@ class Google2FA extends Google2FAService
     {
         $user = $this->getUser();
 
-        $this->sessionForget();
+        $this->store->forget();
 
         event(new LoggedOut($user));
     }
@@ -194,7 +195,7 @@ class Google2FA extends Google2FAService
      */
     protected function updateCurrentAuthTime()
     {
-        $this->sessionPut(Constants::SESSION_AUTH_TIME, Carbon::now());
+        $this->store->put(Constants::SESSION_AUTH_TIME, Carbon::now());
     }
 
     /**

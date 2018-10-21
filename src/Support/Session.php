@@ -2,8 +2,18 @@
 
 namespace PragmaRX\Google2FALaravel\Support;
 
-trait Session
+use PragmaRX\Google2FALaravel\Interfaces\StoreInterface;
+use Illuminate\Http\Request as IlluminateRequest;
+
+class Session implements StoreInterface
 {
+    use Config, Request;
+
+    public function __construct(IlluminateRequest $request)
+    {
+        $this->setRequest($request);
+    }
+
     /**
      * Make a session var name for.
      *
@@ -23,12 +33,8 @@ trait Session
      *
      * @return mixed
      */
-    public function sessionGet($var = null, $default = null)
+    public function get($var = null, $default = null)
     {
-        if ($this->stateless) {
-            return $default;
-        }
-
         return $this->getRequest()->session()->get(
             $this->makeSessionVarName($var),
             $default
@@ -43,12 +49,8 @@ trait Session
      *
      * @return mixed
      */
-    protected function sessionPut($var, $value)
+    public function put($var, $value)
     {
-        if ($this->stateless) {
-            return $value;
-        }
-
         $this->getRequest()->session()->put(
             $this->makeSessionVarName($var),
             $value
@@ -62,18 +64,11 @@ trait Session
      *
      * @param null $var
      */
-    protected function sessionForget($var = null)
+    public function forget($var = null)
     {
-        if ($this->stateless) {
-            return;
-        }
-
         $this->getRequest()->session()->forget(
             $this->makeSessionVarName($var)
         );
     }
 
-    abstract protected function config($string, $children = []);
-
-    abstract public function getRequest();
 }

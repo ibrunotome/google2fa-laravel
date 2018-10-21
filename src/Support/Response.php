@@ -20,7 +20,7 @@ trait Response
     protected function makeJsonResponse($statusCode)
     {
         return new IlluminateJsonResponse(
-            $this->getErrorBagForStatusCode($statusCode),
+            $this->getJsonErrorBagForStatusCode($statusCode),
             $statusCode
         );
     }
@@ -33,9 +33,9 @@ trait Response
     protected function makeStatusCode()
     {
         return
-            $this->inputHasOneTimePassword() && !$this->checkOTP()
+            $this->inputHasOneTimePassword() ? (  !$this->checkOTP()
                 ? SymfonyResponse::HTTP_UNPROCESSABLE_ENTITY
-                : SymfonyResponse::HTTP_OK;
+                : SymfonyResponse::HTTP_OK) : SymfonyResponse::HTTP_SEE_OTHER;
     }
 
     /**

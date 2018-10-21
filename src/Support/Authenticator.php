@@ -21,13 +21,6 @@ class Authenticator extends Google2FA
     protected $password;
 
     /**
-     * Flag to disable the session for API usage.
-     *
-     * @var
-     */
-    protected $stateless = true;
-
-    /**
      * Authenticator constructor.
      *
      * @param \Illuminate\Http\Request $request
@@ -47,22 +40,6 @@ class Authenticator extends Google2FA
     public function boot($request)
     {
         parent::boot($request);
-
-        return $this;
-    }
-
-    /**
-     * Authenticator boot for API usage.
-     *
-     * @param $request
-     *
-     * @return Google2FA
-     */
-    public function bootApi($request)
-    {
-        parent::boot($request);
-
-        $this->stateless = true;
 
         return $this;
     }

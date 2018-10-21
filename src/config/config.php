@@ -34,6 +34,21 @@ return [
     'session_var' => 'google2fa',
 
     /*
+     * Cache container binding
+     */
+
+    'cache' => 'cache',
+
+    /*
+     * Cache lifetime in minutes.
+     * In case user Bearer token expire, remove token from cache
+     * If cache_lifetime sets to 0. You must clean cache by hand.
+     * Default 1 month
+     */
+
+    'cache_lifetime' => 44640, // 0 = eternal
+
+    /*
      * One Time Password request input name
      */
     'otp_input' => 'one_time_password',
@@ -63,6 +78,16 @@ return [
      */
     'error_messages' => [
         'wrong_otp' => "The 'One Time Password' typed was wrong.",
+        'unknown_error' => "Unknown Error",
+        'one_time_password_requested' => 'Please provide one time password'
+    ],
+
+    /*
+     * Custom MessageBag fields for Json response
+     */
+
+    'custom_json_fields' => [
+        'route' => '2fa'
     ],
 
     /*

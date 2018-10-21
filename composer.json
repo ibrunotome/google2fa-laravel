@@ -1,6 +1,6 @@
 {
     "name": "ibrunotome/google2fa-laravel",
-    "description": "The pragmarx/google2fa with the part that allow usage in stateless APIs",
+    "description": "The pragmarx/google2fa with cache store instead sessions",
     "keywords": ["authentication", "two factor authentication", "google2fa", "laravel"],
     "license": "MIT",
     "authors": [

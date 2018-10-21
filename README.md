@@ -1,6 +1,6 @@
 # Google2FA for Laravel
 
-This is the PR [#33](https://github.com/antonioribeiro/google2fa-laravel/pull/33) of [h44z](https://github.com/h44z) 
+This is the [fork](https://github.com/velegip/google2fa-laravel) of [velegip](https://github.com/velegip) 
 that is not accepted until today (2018-10-18) 
 
 ## Documentation
