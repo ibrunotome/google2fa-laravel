@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: veleg
- * Date: 25/08/2018
- * Time: 19:03
- */
 
 namespace PragmaRX\Google2FALaravel\Support;
 
@@ -14,12 +8,26 @@ use PragmaRX\Google2FALaravel\Interfaces\StoreInterface;
 
 class Cache implements StoreInterface
 {
-
-    use Config, Request;
+    use Auth, Config, Request;
 
     public function __construct(IlluminateRequest $request)
     {
         $this->setRequest($request);
+    }
+
+    /**
+     * Get a cache var value.
+     *
+     * @param null $var
+     * @param null $default
+     *
+     * @return mixed
+     *
+     * @throws \Exception
+     */
+    public function get($var = null, $default = null)
+    {
+        return IlluminateCache::get($this->makeCacheVarName($var), $default);
     }
 
     /**
@@ -28,22 +36,13 @@ class Cache implements StoreInterface
      * @param null $name
      *
      * @return mixed
+     *
+     * @throws \Exception
      */
     protected function makeCacheVarName($name = null)
     {
-        return $this->config('session_var').(is_null($name) || empty($name) ? '' : '.'.$name).":".$this->getRequest()->bearerToken();
-    }
-
-    /**
-     * Get a cache var value.
-     *
-     * @param null $var
-     *
-     * @return mixed
-     */
-    public function get($var = null, $default = null)
-    {
-        return IlluminateCache::get($this->makeCacheVarName($var),$default);
+        return $this->config('session_var') . (is_null($name) || empty($name) ? '' : '.' . $name) . ":" .
+            $this->getUser()->id;
     }
 
     /**
@@ -53,12 +52,14 @@ class Cache implements StoreInterface
      * @param $value
      *
      * @return mixed
+     *
+     * @throws \Exception
      */
     public function put($var, $value)
     {
-        ($this->config('cache_lifetime') === 0)?
-        IlluminateCache::forever($this->makeCacheVarName($var),$value) :
-        IlluminateCache::put($this->makeCacheVarName($var),$value,$this->config('cache_lifetime'));
+        ($this->config('cache_lifetime') === 0) ?
+            IlluminateCache::forever($this->makeCacheVarName($var), $value) :
+            IlluminateCache::put($this->makeCacheVarName($var), $value, $this->config('cache_lifetime'));
 
         return $value;
     }
@@ -67,6 +68,8 @@ class Cache implements StoreInterface
      * Forget a session var.
      *
      * @param null $var
+     *
+     * @throws \Exception
      */
     public function forget($var = null)
     {

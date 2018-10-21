@@ -2,7 +2,6 @@
 
 namespace PragmaRX\Google2FALaravel\Support;
 
-use Illuminate\Http\Request as IlluminateRequest;
 use PragmaRX\Google2FALaravel\Events\EmptyOneTimePasswordReceived;
 use PragmaRX\Google2FALaravel\Events\LoginFailed;
 use PragmaRX\Google2FALaravel\Events\LoginSucceeded;
@@ -21,16 +20,6 @@ class Authenticator extends Google2FA
     protected $password;
 
     /**
-     * Authenticator constructor.
-     *
-     * @param \Illuminate\Http\Request $request
-     */
-    public function __construct(IlluminateRequest $request)
-    {
-        parent::__construct($request);
-    }
-
-    /**
      * Authenticator boot.
      *
      * @param $request
@@ -45,19 +34,65 @@ class Authenticator extends Google2FA
     }
 
     /**
-     * Fire login (success or failed).
+     * Check if the current use is authenticated via OTP.
      *
-     * @param $succeeded
+     * @return bool
+     *
+     * @throws \Exception
      */
-    private function fireLoginEvent($succeeded)
+    public function isAuthenticated()
     {
-        event(
-            $succeeded
-                ? new LoginSucceeded($this->getUser())
-                : new LoginFailed($this->getUser())
-        );
+        return $this->canPassWithoutCheckingOTP() || $this->checkOTP();
+    }
 
-        return $succeeded;
+    /**
+     * Check if it is already logged in or passable without checking for an OTP.
+     *
+     * @return bool
+     *
+     * @throws \Exception
+     */
+    protected function canPassWithoutCheckingOTP()
+    {
+        return
+            !$this->isEnabled() ||
+            $this->noUserIsAuthenticated() ||
+            !$this->isActivated() ||
+            $this->twoFactorAuthStillValid();
+    }
+
+    /**
+     * Check if the input OTP is valid.
+     *
+     * @return bool
+     *
+     * @throws InvalidOneTimePassword
+     */
+    protected function checkOTP()
+    {
+        if (!$this->inputHasOneTimePassword()) {
+            return false;
+        }
+
+        if ($isValid = $this->verifyOneTimePassword()) {
+            $this->login();
+        }
+
+        return $this->fireLoginEvent($isValid);
+    }
+
+    /**
+     * Verify the OTP.
+     *
+     * @return mixed
+     *
+     * @throws InvalidOneTimePassword
+     *
+     * @throws \Exception
+     */
+    protected function verifyOneTimePassword()
+    {
+        return $this->verifyAndStoreOneTimePassword($this->getOneTimePassword());
     }
 
     /**
@@ -81,56 +116,20 @@ class Authenticator extends Google2FA
     }
 
     /**
-     * Check if the current use is authenticated via OTP.
+     * Fire login (success or failed).
+     *
+     * @param $succeeded
      *
      * @return bool
      */
-    public function isAuthenticated()
+    private function fireLoginEvent($succeeded)
     {
-        return $this->canPassWithoutCheckingOTP()
-            ? true
-            : $this->checkOTP();
-    }
+        event(
+            $succeeded
+                ? new LoginSucceeded($this->getUser())
+                : new LoginFailed($this->getUser())
+        );
 
-    /**
-     * Check if it is already logged in or passable without checking for an OTP.
-     *
-     * @return bool
-     */
-    protected function canPassWithoutCheckingOTP()
-    {
-        return
-            !$this->isEnabled() ||
-            $this->noUserIsAuthenticated() ||
-            !$this->isActivated() ||
-            $this->twoFactorAuthStillValid();
-    }
-
-    /**
-     * Check if the input OTP is valid.
-     *
-     * @return bool
-     */
-    protected function checkOTP()
-    {
-        if (!$this->inputHasOneTimePassword()) {
-            return false;
-        }
-
-        if ($isValid = $this->verifyOneTimePassword()) {
-            $this->login();
-        }
-
-        return $this->fireLoginEvent($isValid);
-    }
-
-    /**
-     * Verify the OTP.
-     *
-     * @return mixed
-     */
-    protected function verifyOneTimePassword()
-    {
-        return $this->verifyAndStoreOneTimePassword($this->getOneTimePassword());
+        return $succeeded;
     }
 }

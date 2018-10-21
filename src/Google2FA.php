@@ -8,7 +8,6 @@ use PragmaRX\Google2FA\Google2FA as Google2FAService;
 use PragmaRX\Google2FA\Support\Constants as Google2FAConstants;
 use PragmaRX\Google2FALaravel\Events\LoggedOut;
 use PragmaRX\Google2FALaravel\Events\OneTimePasswordExpired;
-use PragmaRX\Google2FALaravel\Exceptions\InvalidSecretKey;
 use PragmaRX\Google2FALaravel\Support\Auth;
 use PragmaRX\Google2FALaravel\Support\Config;
 use PragmaRX\Google2FALaravel\Support\Constants;
@@ -39,27 +38,17 @@ class Google2FA extends Google2FAService
     public function boot($request)
     {
         $this->setRequest($request);
-        $this->setStore($this->getRequest());
+        $this->setStore($request);
 
         return $this;
-    }
-
-    /**
-     * Get the user Google2FA secret.
-     *
-     * @throws InvalidSecretKey
-     *
-     * @return mixed
-     */
-    protected function getGoogle2FASecretKey()
-    {
-        return $this->getUser()->{$this->config('otp_secret_column')};
     }
 
     /**
      * Check if the 2FA is activated for the user.
      *
      * @return bool
+     *
+     * @throws \Exception
      */
     public function isActivated()
     {
@@ -69,51 +58,25 @@ class Google2FA extends Google2FAService
     }
 
     /**
-     * Store the old OTP timestamp.
+     * Get the user Google2FA secret.
      *
-     * @param $key
+     * @throws \Exception
      *
      * @return mixed
      */
-    protected function storeOldTimestamp($key)
+    protected function getGoogle2FASecretKey()
     {
-        return $this->config('forbid_old_passwords') === true
-            ? $this->store->put(Constants::SESSION_OTP_TIMESTAMP, $key)
-            : $key;
+        return $this->getUser()->{$this->config('otp_secret_column')};
     }
 
     /**
-     * Get the previous OTP timestamp.
-     *
-     * @return null|mixed
+     * Set current auth as valid.
      */
-    protected function getOldTimestamp()
+    public function login()
     {
-        return $this->config('forbid_old_passwords') === true
-            ? $this->store->get(Constants::SESSION_OTP_TIMESTAMP)
-            : null;
-    }
+        $this->store->put(Constants::AUTH_PASSED, true);
 
-    /**
-     * Keep this OTP session alive.
-     */
-    protected function keepAlive()
-    {
-        if ($this->config('keep_alive')) {
-            $this->updateCurrentAuthTime();
-        }
-    }
-
-    /**
-     * Get minutes since last activity.
-     *
-     * @return int
-     */
-    protected function minutesSinceLastActivity()
-    {
-        return Carbon::now()->diffInMinutes(
-            $this->store->get(Constants::SESSION_AUTH_TIME)
-        );
+        $this->updateCurrentAuthTime();
     }
 
     /**
@@ -127,9 +90,25 @@ class Google2FA extends Google2FAService
     }
 
     /**
+     * Verifies in the current cache if a 2fa check has already passed.
+     *
+     * @return bool
+     *
+     * @throws \Exception
+     */
+    protected function twoFactorAuthStillValid()
+    {
+        return
+            (bool)$this->store->get(Constants::AUTH_PASSED, false) &&
+            !$this->passwordExpired();
+    }
+
+    /**
      * Check if OTP has expired.
      *
      * @return bool
+     *
+     * @throws \Exception
      */
     protected function passwordExpired()
     {
@@ -147,35 +126,15 @@ class Google2FA extends Google2FAService
     }
 
     /**
-     * Verifies, in the current session, if a 2fa check has already passed.
+     * Get minutes since last activity.
      *
-     * @return bool
+     * @return int
      */
-    protected function twoFactorAuthStillValid()
+    protected function minutesSinceLastActivity()
     {
-        return
-            (bool) $this->store->get(Constants::SESSION_AUTH_PASSED, false) &&
-            !$this->passwordExpired();
-    }
-
-    /**
-     * Check if the module is enabled.
-     *
-     * @return mixed
-     */
-    protected function isEnabled()
-    {
-        return $this->config('enabled');
-    }
-
-    /**
-     * Set current auth as valid.
-     */
-    public function login()
-    {
-        $this->store->put(Constants::SESSION_AUTH_PASSED, true);
-
-        $this->updateCurrentAuthTime();
+        return Carbon::now()->diffInMinutes(
+            $this->store->get(Constants::AUTH_TIME)
+        );
     }
 
     /**
@@ -191,30 +150,35 @@ class Google2FA extends Google2FAService
     }
 
     /**
+     * Keep this OTP session alive.
+     *
+     * @throws \Exception
+     */
+    protected function keepAlive()
+    {
+        if ($this->config('keep_alive')) {
+            $this->updateCurrentAuthTime();
+        }
+    }
+
+    /**
      * Update the current auth time.
      */
     protected function updateCurrentAuthTime()
     {
-        $this->store->put(Constants::SESSION_AUTH_TIME, Carbon::now());
+        $this->store->put(Constants::AUTH_TIME, Carbon::now());
     }
 
     /**
-     * Verify the OTP.
-     *
-     * @param $secret
-     * @param $one_time_password
+     * Check if the module is enabled.
      *
      * @return mixed
+     *
+     * @throws \Exception
      */
-    public function verifyGoogle2FA($secret, $one_time_password)
+    protected function isEnabled()
     {
-        return $this->verifyKey(
-                $secret,
-                $one_time_password,
-                $this->config('window'),
-                null, // $timestamp
-                $this->getOldTimestamp() ?: Google2FAConstants::ARGUMENT_NOT_SET
-        );
+        return $this->config('enabled');
     }
 
     /**
@@ -223,6 +187,8 @@ class Google2FA extends Google2FAService
      * @param $one_time_password
      *
      * @return mixed
+     *
+     * @throws \Exception
      */
     protected function verifyAndStoreOneTimePassword($one_time_password)
     {
@@ -232,5 +198,56 @@ class Google2FA extends Google2FAService
                 $one_time_password
             )
         );
+    }
+
+    /**
+     * Store the old OTP timestamp.
+     *
+     * @param $key
+     *
+     * @return mixed
+     *
+     * @throws \Exception
+     */
+    protected function storeOldTimestamp($key)
+    {
+        return $this->config('forbid_old_passwords') === true
+            ? $this->store->put(Constants::OTP_TIMESTAMP, $key)
+            : $key;
+    }
+
+    /**
+     * Verify the OTP.
+     *
+     * @param $secret
+     * @param $one_time_password
+     *
+     * @return mixed
+     *
+     * @throws \Exception
+     */
+    public function verifyGoogle2FA($secret, $one_time_password)
+    {
+        return $this->verifyKey(
+            $secret,
+            $one_time_password,
+            $this->config('window'),
+            null, // $timestamp
+            $this->getOldTimestamp() ?: Google2FAConstants::ARGUMENT_NOT_SET
+        );
+    }
+
+    /**
+     * Get the previous OTP timestamp.
+     *
+     * @return null|mixed
+     *
+     * @throws \Exception
+     */
+    protected function getOldTimestamp()
+    {
+        return $this->config('forbid_old_passwords') === true
+            ? $this->store->get(Constants::OTP_TIMESTAMP)
+            : null;
     }
 }
