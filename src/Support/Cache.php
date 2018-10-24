@@ -41,7 +41,7 @@ class Cache implements StoreInterface
      */
     protected function makeCacheVarName($name = null)
     {
-        return $this->config('session_var') . (is_null($name) || empty($name) ? '' : '.' . $name) . ":" .
+        return $this->config('cache_var') . (is_null($name) || empty($name) ? '' : '.' . $name) . ":" .
             $this->getUser()->id;
     }
 
@@ -65,7 +65,7 @@ class Cache implements StoreInterface
     }
 
     /**
-     * Forget a session var.
+     * Forget a cache var.
      *
      * @param null $var
      *

@@ -142,9 +142,11 @@ class Google2FA extends Google2FAService
      */
     public function logout()
     {
-        $user = $this->getUser();
+        $this->store->forget(Constants::AUTH_PASSED);
+        $this->store->forget(Constants::AUTH_TIME);
+        $this->store->forget(Constants::OTP_TIMESTAMP);
 
-        $this->store->forget();
+        $user = $this->getUser();
 
         event(new LoggedOut($user));
     }

@@ -1,62 +1,57 @@
 <?php
 
 return [
-
     /*
      * Auth container binding
      */
-
-    'enabled' => true,
+    'enabled'              => true,
 
     /*
      * Lifetime in minutes.
      * In case you need your users to be asked for a new one time passwords from time to time.
+     *
+     * 0 = eternal
      */
-
-    'lifetime' => 0, // 0 = eternal
+    'lifetime'             => 0,
 
     /*
      * Renew lifetime at every new request.
      */
-
-    'keep_alive' => true,
-
-    /*
-     * Auth container binding
-     */
-
-    'auth' => 'auth',
+    'keep_alive'           => true,
 
     /*
-     * 2FA verified session var
+     * Auth container binding.
      */
-
-    'session_var' => 'google2fa',
+    'auth'                 => 'auth',
 
     /*
-     * Cache container binding
+     * 2FA verified cache var.
      */
+    'cache_var'            => 'google2fa',
 
-    'cache' => 'cache',
+    /*
+     * Cache container binding.
+     */
+    'cache'                => 'cache',
 
     /*
      * Cache lifetime in minutes.
      * In case user Bearer token expire, remove token from cache
      * If cache_lifetime sets to 0. You must clean cache by hand.
-     * Default 1 month
+     *
+     * Default 1 day
      */
-
-    'cache_lifetime' => 44640, // 0 = eternal
-
-    /*
-     * One Time Password request input name
-     */
-    'otp_input' => 'one_time_password',
+    'cache_lifetime'       => 1440,
 
     /*
-     * One Time Password Window
+     * One Time Password request input name.
      */
-    'window' => 1,
+    'otp_input'            => 'one_time_password',
+
+    /*
+     * One Time Password Window.
+     */
+    'window'               => 0.5,
 
     /*
      * Forbid user to reuse One Time Passwords.
@@ -64,35 +59,33 @@ return [
     'forbid_old_passwords' => false,
 
     /*
-     * User's table column for google2fa secret
+     * User's table column for google2fa secret.
      */
-    'otp_secret_column' => 'google2fa_secret',
+    'otp_secret_column'    => 'google2fa_secret',
 
     /*
-     * One Time Password View
+     * One Time Password View.
      */
-    'view' => 'google2fa.index',
+    'view'                 => 'google2fa.index',
 
     /*
-     * One Time Password error message
+     * One Time Password error message.
      */
-    'error_messages' => [
-        'wrong_otp' => "The 'One Time Password' typed was wrong.",
-        'unknown_error' => "Unknown Error",
+    'error_messages'       => [
+        'wrong_otp'                   => "The 'One Time Password' typed was wrong",
+        'unknown_error'               => 'Unknown Error',
         'one_time_password_requested' => 'Please provide one time password'
     ],
 
     /*
-     * Custom MessageBag fields for Json response
+     * Custom MessageBag fields for Json response.
      */
-
-    'custom_json_fields' => [
+    'custom_json_fields'   => [
         'route' => '2fa'
     ],
 
     /*
      * Throw exceptions or just fire events?
      */
-    'throw_exceptions' => true,
-
+    'throw_exceptions'     => true,
 ];
