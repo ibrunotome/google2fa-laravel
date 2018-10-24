@@ -1,7 +1,9 @@
 # Google2FA for Laravel
 
-This is the [fork](https://github.com/velegip/google2fa-laravel) of [velegip](https://github.com/velegip) 
-that is not accepted until today (2018-10-18) 
+This is based on the [fork](https://github.com/velegip/google2fa-laravel) of [velegip](https://github.com/velegip) 
+that is not accepted until today (2018-10-18).
+
+I modified the package to work only with cache instead of sessions, to use in stateless APIs.
 
 ## Documentation
 
