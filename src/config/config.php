@@ -25,6 +25,11 @@ return [
     'auth'                 => 'auth',
 
     /*
+     * Auth guard container binding.
+     */
+    'auth_guard'           => 'api',
+
+    /*
      * 2FA verified cache var.
      */
     'cache_var'            => 'google2fa',

@@ -19,7 +19,7 @@ trait Auth
     protected function getAuth()
     {
         if (is_null($this->auth)) {
-            $this->auth = app($this->config('auth'));
+            $this->auth = app($this->config('auth')->guard($this->config('auth_guard')));
         }
 
         return $this->auth;
