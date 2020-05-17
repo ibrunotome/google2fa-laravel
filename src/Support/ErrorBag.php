@@ -51,9 +51,9 @@ trait ErrorBag
     protected function getJsonErrorBagForStatusCode($statusCode)
     {
         return $this->getCustomFields($this->createErrorBagForMessage(trans(
-            config($statusCode == SymfonyResponse::HTTP_SEE_OTHER ?
+            config(($statusCode == SymfonyResponse::HTTP_SEE_OTHER ?
                 'google2fa.error_messages.one_time_password_requested' :
-                $statusCode == SymfonyResponse::HTTP_UNPROCESSABLE_ENTITY
+                $statusCode == SymfonyResponse::HTTP_UNPROCESSABLE_ENTITY)
                     ? 'google2fa.error_messages.wrong_otp'
                     : 'google2fa.error_messages.unknown_error')
         )));
